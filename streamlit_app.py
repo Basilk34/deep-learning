@@ -2,38 +2,77 @@ import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
+from PIL import Image
+import numpy as np
 
-# 1. تحميل النموذج
-model = tf.keras.models.load_model('sentiment_model')
+st.title("تحليل ميول الناس من النصوص والصور")
 
-# 2. تحميل Tokenizer
-with open('tokenizer.pickle', 'rb') as handle:
-    tokenizer = pickle.load(handle)
+# -- إعدادات نموذج النص --
+max_len = 100
 
-max_len = 100  # نفس قيمة max_len أثناء التدريب
+# تحميل نموذج النص والtokenizer
+@st.cache(allow_output_mutation=True)
+def load_text_model():
+    model = tf.keras.models.load_model('sentiment_model_text')
+    with open('tokenizer_text.pickle', 'rb') as handle:
+        tokenizer = pickle.load(handle)
+    return model, tokenizer
 
-# دالة لتحضير النصوص
+text_model, tokenizer = load_text_model()
+
 def preprocess_text(text):
     seq = tokenizer.texts_to_sequences([text])
     padded = pad_sequences(seq, maxlen=max_len, padding='post')
     return padded
 
-# دالة التوقع
-def predict_sentiment(text):
+def predict_text_sentiment(text):
     data = preprocess_text(text)
-    pred = model.predict(data)
+    pred = text_model.predict(data)
     class_idx = pred.argmax(axis=1)[0]
-    classes = ['negative', 'neutral', 'positive']  # عدل حسب بياناتك
+    classes = ['negative', 'neutral', 'positive']  # عدل حسب نموذجك
     return classes[class_idx]
 
-# واجهة Streamlit
-st.title("تحليل ميول الناس من تويتر")
+# -- واجهة نص --
+st.header("تحليل النص")
+user_text = st.text_input("أدخل نص التحليل:")
 
-user_input = st.text_input("اكتب النص هنا لتحليل المشاعر:")
-
-if st.button("تحليل"):
-    if user_input.strip() == "":
-        st.warning("من فضلك أدخل نص لتحليله")
+if st.button("تحليل النص"):
+    if user_text.strip() == "":
+        st.warning("يرجى إدخال نص")
     else:
-        result = predict_sentiment(user_input)
+        result = predict_text_sentiment(user_text)
         st.success(f"الميول: {result}")
+
+# -- إعدادات نموذج الصورة --
+IMG_SIZE = (224, 224)  # حسب مدخلات نموذج الصورة
+
+@st.cache(allow_output_mutation=True)
+def load_image_model():
+    model = tf.keras.models.load_model('sentiment_model_image')
+    return model
+
+image_model = load_image_model()
+
+def preprocess_image(image):
+    image = image.resize(IMG_SIZE)
+    img_array = np.array(image)/255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
+
+def predict_image_sentiment(image):
+    img = preprocess_image(image)
+    pred = image_model.predict(img)
+    class_idx = pred.argmax(axis=1)[0]
+    classes = ['negative', 'neutral', 'positive']  # عدل حسب نموذجك
+    return classes[class_idx]
+
+# -- واجهة صورة --
+st.header("تحليل الصورة")
+uploaded_file = st.file_uploader("ارفع صورة", type=['jpg', 'jpeg', 'png'])
+
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="الصورة المرفوعة", use_column_width=True)
+    if st.button("تحليل الصورة"):
+        result_img = predict_image_sentiment(image)
+        st.success(f"الميول من الصورة: {result_img}")
