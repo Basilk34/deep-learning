@@ -45,3 +45,9 @@ def predict_sentiment(text):
     classes = ['negative', 'neutral', 'positive']
     return classes[class_idx]
 
+if st.button("تحليل"):
+    if not user_input.strip():
+        st.warning("من فضلك أدخل نصاً للتحليل.")
+    else:
+        result = predict_sentiment(user_input)
+        st.success(f"الميول المتوقعة: {result}")
