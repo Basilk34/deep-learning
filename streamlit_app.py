@@ -1,4 +1,6 @@
 import streamlit as st
+st.set_page_config(page_title="تحليل الميول", page_icon="💬")
+
 import tensorflow as tf
 import numpy as np
 import pickle
@@ -31,7 +33,6 @@ def extract_keywords(text, num_keywords=5):
     return most_common  # ترجع قائمة من tuples (كلمة، تكرار)
 
 # --- واجهة التطبيق ---
-st.set_page_config(page_title="تحليل الميول", page_icon="💬")
 st.title("🔍 تحليل الميول تجاه كورونا باستخدام LSTM")
 
 # أولاً: اسم المستخدم والتاريخ
