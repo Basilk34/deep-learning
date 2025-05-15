@@ -36,3 +36,12 @@ if st.button("تحليل"):
     else:
         result = predict_sentiment(user_input)
         st.success(f"الميول المتوقعة: {result}")
+
+def predict_sentiment(text):
+    data = preprocess_text(text)
+    pred = model.predict(data)
+    st.write("Raw model output:", pred)  # تظهر داخل التطبيق
+    class_idx = pred.argmax(axis=1)[0]
+    classes = ['negative', 'neutral', 'positive']
+    return classes[class_idx]
+
