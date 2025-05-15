@@ -1,2 +1,6 @@
 streamlit
+snscrape
 tensorflow
+numpy
+keras
+pickle-mixin
