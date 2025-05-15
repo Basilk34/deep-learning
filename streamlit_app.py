@@ -37,3 +37,21 @@ if user_input:
     # عرض النتيجة
     st.success(f"**التصنيف:** {labels[class_idx]}")
     st.info(f"**نسبة الثقة:** {confidence:.2f}")
+
+from collections import Counter
+import re
+
+def extract_keywords(text, num_keywords=5):
+    # تنظيف النص: حذف علامات الترقيم والأحرف الخاصة
+    words = re.findall(r'\b\w+\b', text.lower())
+    stopwords = set(['the', 'is', 'in', 'and', 'to', 'of', 'a', 'for', 'on', 'with', 'that', 'this'])  # ممكن توسعها
+    filtered_words = [w for w in words if w not in stopwords]
+    most_common = Counter(filtered_words).most_common(num_keywords)
+    return [word for word, count in most_common]
+
+# في واجهة Streamlit
+keywords = extract_keywords(user_input)
+if keywords:
+    st.markdown("### 🔑 الكلمات المفتاحية الأكثر ظهورًا:")
+    st.write(", ".join(keywords))
+
