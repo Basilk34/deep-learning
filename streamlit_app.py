@@ -4,7 +4,6 @@ import tensorflow as tf
 import numpy as np
 import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-
 # ------------------------
 # تحميل النموذج والتوكنيزر
 # ------------------------
