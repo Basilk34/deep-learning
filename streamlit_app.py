@@ -5,11 +5,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 st.title("تحليل ميول النصوص (Sentiment Analysis)")
 
-# إعدادات ثابتة
-MAX_LEN = 100
+MAX_LEN = 100  # طول التسلسل للنموذج، عدّل حسب تدريبك
 
-# تحميل النموذج والtokenizer مرة واحدة (استخدام cache لتسريع)
-@st.cache(allow_output_mutation=True)
+@st.cache_resource
 def load_model_and_tokenizer():
     model = tf.keras.models.load_model('sentiment_model.h5')
     with open('tokenizer.pickle', 'rb') as f:
@@ -27,10 +25,9 @@ def predict_sentiment(text):
     data = preprocess_text(text)
     pred = model.predict(data)
     class_idx = pred.argmax(axis=1)[0]
-    classes = ['negative', 'neutral', 'positive']  # عدل حسب تصنيفاتك
+    classes = ['negative', 'neutral', 'positive']  # عدّل حسب تصنيفاتك
     return classes[class_idx]
 
-# واجهة المستخدم
 user_input = st.text_area("اكتب نص لتحليل الميول:")
 
 if st.button("تحليل"):
