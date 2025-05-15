@@ -1,13 +1,13 @@
-# 📦 Streamlit App Starter Kit 
+34 deep learning app 
 ```
-⬆️ (Replace above with your app's name)
+Basil kanaan
 ```
 
 Description of the app ...
 
 ## Demo App
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://app-starter-kit.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://app-deeplearning.app/)
 
 ## GitHub Codespaces
 
