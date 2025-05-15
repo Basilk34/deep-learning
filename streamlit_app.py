@@ -4,6 +4,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
 from PIL import Image
 import numpy as np
+import tensorflow as tf
+
+model = tf.keras.models.load_model('sentiment_model.h5')
 
 st.title("تحليل ميول الناس من النصوص والصور")
 
