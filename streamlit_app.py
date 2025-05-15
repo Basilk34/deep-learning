@@ -1,47 +1,39 @@
 import streamlit as st
 import tensorflow as tf
+import numpy as np
 import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-st.title("تحليل ميول النصوص (Sentiment Analysis)")
+# --- إعدادات ---
+max_len = 100  # تأكد أنها نفس القيمة التي دربت بها
+labels = ['Extremely Negative', 'Negative', 'Neutral', 'Positive', 'Extremely Positive']
 
-MAX_LEN = 100  # طول التسلسل للنموذج، عدّل حسب تدريبك
-
+# --- تحميل النموذج والتوكنيزر ---
 @st.cache_resource
 def load_model_and_tokenizer():
-    model = tf.keras.models.load_model('sentiment_model.h5')
-    with open('tokenizer.pickle', 'rb') as f:
+    model = tf.keras.models.load_model('lstm_corona_model.h5')
+    with open('tokenizer (1).pickle', 'rb') as f:
         tokenizer = pickle.load(f)
     return model, tokenizer
 
 model, tokenizer = load_model_and_tokenizer()
 
-def preprocess_text(text):
-    seq = tokenizer.texts_to_sequences([text])
-    padded = pad_sequences(seq, maxlen=MAX_LEN, padding='post')
-    return padded
+# --- واجهة Streamlit ---
+st.set_page_config(page_title="تحليل الميول", page_icon="💬")
+st.title("🔍 تحليل الميول تجاه كورونا باستخدام LSTM")
 
-def predict_sentiment(text):
-    data = preprocess_text(text)
-    pred = model.predict(data)
-    class_idx = pred.argmax(axis=1)[0]
-    classes = ['negative', 'neutral', 'positive']  # عدّل حسب تصنيفاتك
-    return classes[class_idx]
+user_input = st.text_input("📝 أدخل تغريدة أو نص تحليل:")
 
-user_input = st.text_area("اكتب نص لتحليل الميول:")
+if user_input:
+    # تحويل النص إلى تسلسل رقمي
+    seq = tokenizer.texts_to_sequences([user_input])
+    padded = pad_sequences(seq, maxlen=max_len, padding='post', truncating='post')
 
-if st.button("تحليل"):
-    if not user_input.strip():
-        st.warning("من فضلك أدخل نصاً للتحليل.")
-    else:
-        result = predict_sentiment(user_input)
-        st.success(f"الميول المتوقعة: {result}")
+    # التنبؤ
+    prediction = model.predict(padded)
+    class_idx = np.argmax(prediction)
+    confidence = np.max(prediction)
 
-def predict_sentiment(text):
-    data = preprocess_text(text)
-    pred = model.predict(data)
-    st.write("Raw model output:", pred)  # تظهر داخل التطبيق
-    class_idx = pred.argmax(axis=1)[0]
-    classes = ['negative', 'neutral', 'positive']
-    return classes[class_idx]
-
+    # عرض النتيجة
+    st.success(f"**التصنيف:** {labels[class_idx]}")
+    st.info(f"**نسبة الثقة:** {confidence:.2f}")
