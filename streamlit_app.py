@@ -15,7 +15,7 @@ posts = [
     "Not good, not bad."
 ]
 
-st.title("🔎 بحث وتحليل التوجه")
+st.title("🔎Searching for people's trends and popular content")
 
 # خانة البحث
 query = st.text_input("🔍 ابحث عن منشور يحتوي كلمات معينة")
