@@ -4,3 +4,4 @@ tensorflow
 numpy
 keras
 pickle-mixin
+streamlit run app.py
