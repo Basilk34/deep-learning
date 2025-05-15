@@ -7,7 +7,6 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 # --- إعدادات ---
 max_len = 100  # تأكد أنها نفس القيمة التي دربت بها
 labels = ['Extremely Negative', 'Negative', 'Neutral', 'Positive', 'Extremely Positive']
-
 # --- تحميل النموذج والتوكنيزر ---
 @st.cache_resource
 def load_model_and_tokenizer():
