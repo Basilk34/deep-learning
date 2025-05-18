@@ -74,3 +74,55 @@ if username:
                 st.pyplot(fig)
 else:
     st.info("الرجاء إدخال اسم المستخدم للبدء.")
+
+import streamlit as st
+import os
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
+import numpy as np
+import gdown
+from PIL import Image
+
+# حجم الصورة المطلوبة
+IMG_SIZE = 224
+
+# رابط التحميل المباشر للنموذج (استخرجت الـ FILE_ID من الرابط حقك)
+MODEL_URL = 'https://drive.google.com/uc?export=download&id=1oYuyEpzubzQ2Ph67l3ZKvDjQYCcLwQjY'
+MODEL_PATH = 'flower_model.h5'
+
+@st.cache_resource
+def download_and_load_model():
+    if not os.path.exists(MODEL_PATH):
+        st.write("⏳ جاري تحميل النموذج من Google Drive ...")
+        gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+    model = load_model(MODEL_PATH)
+    return model
+
+model = download_and_load_model()
+
+def predict(img, model):
+    img = img.resize((IMG_SIZE, IMG_SIZE))
+    img_array = image.img_to_array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    prediction = model.predict(img_array)
+    return prediction
+
+st.title("تصنيف صور الورود")
+
+uploaded_file = st.file_uploader("ارفع صورة ورد هنا", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+    img = Image.open(uploaded_file)
+    st.image(img, caption="الصورة التي رفعتها", use_column_width=True)
+    
+    prediction = predict(img, model)
+    
+    # ضع أسماء الأصناف حسب التدريب عندك
+    class_labels = ['daisy', 'dandelion', 'rose', 'sunflower', 'tulip']
+    
+    predicted_class = class_labels[np.argmax(prediction)]
+    confidence = np.max(prediction) * 100
+    
+    st.write(f"**التنبؤ:** {predicted_class}")
+    st.write(f"**الثقة:** {confidence:.2f}%")
+
