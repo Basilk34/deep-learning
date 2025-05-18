@@ -12,4 +12,4 @@ scikit-learn
 langdetect
 geotext
 matplotlib
-pip install gdown streamlit tensorflow pillow numpy
+
