@@ -14,6 +14,7 @@ try:
 
     with open(output, "rb") as f:
         tokenizer = pickle.load(f)
-        st.success("✅ تم تحميل التوكينايزر بنجاح")
+        st.success("✅ تم تحميل التوكينايزر")
 except Exception as e:
-    st.error(f"❌ فشل تحميل التوكينايزر: {e}")
+    st.error(f"❌ حدث خطأ أثناء تحميل التوكينايزر: {e}")
+
