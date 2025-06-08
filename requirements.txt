@@ -1,7 +1,9 @@
 streamlit
 gdown
-tensorflow
+tensorflow==2.13.0
 numpy
 google-api-python-client
 youtube-comment-downloader
+python_version<3.12
+
 
