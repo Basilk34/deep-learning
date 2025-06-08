@@ -10,13 +10,35 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import tensorflow as tf
 import pandas as pd
 import matplotlib.pyplot as plt
+from tensorflow.keras.layers import Layer
+from tensorflow.keras import backend as K
+
+# ============================
+# ✅ تعريف طبقة AttentionLayer المخصصة
+# ============================
+class AttentionLayer(Layer):
+    def __init__(self, **kwargs):
+        super(AttentionLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.W = self.add_weight(name='att_weight', shape=(input_shape[-1], 1),
+                                 initializer='normal', trainable=True)
+        self.b = self.add_weight(name='att_bias', shape=(input_shape[1], 1),
+                                 initializer='zeros', trainable=True)
+        super(AttentionLayer, self).build(input_shape)
+
+    def call(self, x):
+        e = K.tanh(K.dot(x, self.W) + self.b)
+        a = K.softmax(e, axis=1)
+        output = x * a
+        return K.sum(output, axis=1)
 
 # ============================
 # 🔐 CONFIG
 # ============================
 YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
-TOKENIZER_PATH = "tokenizer.pkl"  # تأكد أنه موجود بجانب app.py
-MODEL_PATH = "arabic_sentiment_model_cleaned.h5"  # الموديل الجديد المحلي
+TOKENIZER_PATH = "tokenizer.pkl"
+MODEL_PATH = "arabic_sentiment_model_cleaned.h5"
 LABELS = ['negative', 'neutral', 'positive']
 MAX_COMMENTS = 50
 
@@ -26,7 +48,11 @@ MAX_COMMENTS = 50
 with open(TOKENIZER_PATH, 'rb') as f:
     tokenizer = pickle.load(f)
 
-model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+model = tf.keras.models.load_model(
+    MODEL_PATH,
+    compile=False,
+    custom_objects={"AttentionLayer": AttentionLayer}
+)
 
 # ============================
 # 🔍 Helper Functions
