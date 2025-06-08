@@ -10,3 +10,9 @@ output = "tokenizer.pkl"
 # تحميل الملف فقط إذا لم يكن موجود
 if not os.path.exists(output):
     gdown.download(url, output, quiet=False)
+import os
+
+if os.path.exists("tokenizer.pkl"):
+    print("✅ تم تحميل التوكينايزر بنجاح!")
+else:
+    print("❌ لم يتم تحميل التوكينايزر.")
