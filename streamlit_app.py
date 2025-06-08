@@ -9,10 +9,10 @@ import os
 # أسماء الكلاسات
 class_names = ['Neutral', 'negative', 'positive']
 
-# روابط Google Drive
+# روابط Google Drive بعد التعديل
 models_to_download = {
-    "models/image_model_v1.h5": "18e9JcIpWWkRke1Rh2fEu_B1u6pbpzBh0",  # الصور العامة
-    "models/image_model_v2.h5": "1QiS1oEYxnIbj3ykZ-OmfqmUj7u0yHYN3"   # الوجوه
+    "models/image_model_faces.h5": "18e9JcIpWWkRke1Rh2fEu_B1u6pbpzBh0",  # 👤 موديل الوجوه
+    "models/image_model_general.h5": "1QiS1oEYxnIbj3ykZ-OmfqmUj7u0yHYN3"   # 🖼️ موديل الصور العامة
 }
 
 # تحميل الموديلات
@@ -23,14 +23,14 @@ for filepath, file_id in models_to_download.items():
         gdown.download(url, filepath, quiet=False)
 
 # تحميل الموديلات
-model_general = tf.keras.models.load_model("models/image_model_v1.h5")
-model_faces = tf.keras.models.load_model("models/image_model_v2.h5")
+model_faces = tf.keras.models.load_model("models/image_model_faces.h5")
+model_general = tf.keras.models.load_model("models/image_model_general.h5")
 
 # واجهة Streamlit
 st.title("🧠 تحليل المشاعر من الصور")
 
 # اختيار الموديل يدويًا
-model_option = st.selectbox("اختر نوع الموديل:", ["🖼️ الصور العامة", "👤 الوجوه فقط"])
+model_option = st.selectbox("اختر نوع الموديل:", ["👤 الوجوه فقط", "🖼️ الصور العامة"])
 
 # رفع صورة
 uploaded_file = st.file_uploader("📷 ارفع صورة", type=["jpg", "jpeg", "png"])
@@ -44,12 +44,12 @@ if uploaded_file is not None:
     img_array = preprocess_input(img_array)
 
     # اختيار الموديل حسب المستخدم
-    if model_option == "🖼️ الصور العامة":
-        prediction = model_general.predict(img_array)
-        model_used = "🖼️ موديل الصور العامة"
-    else:
+    if model_option == "👤 الوجوه فقط":
         prediction = model_faces.predict(img_array)
         model_used = "👤 موديل الوجوه"
+    else:
+        prediction = model_general.predict(img_array)
+        model_used = "🖼️ موديل الصور العامة"
 
     predicted_class = class_names[np.argmax(prediction)]
 
