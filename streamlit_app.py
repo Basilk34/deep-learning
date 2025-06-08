@@ -19,7 +19,7 @@ def search_trending_videos(api_key, query, region='SA', max_results=10):
         regionCode=region,
         maxResults=max_results
     ).execute()
-    
+
     results = []
     for item in response.get("items", []):
         video_id = item["id"]["videoId"]
