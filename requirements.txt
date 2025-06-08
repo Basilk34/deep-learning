@@ -1,4 +1,5 @@
 streamlit
+tensorflow[and-keras]==2.13.0
 gdown
 numpy
 google-api-python-client
