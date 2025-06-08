@@ -3,12 +3,11 @@ import numpy as np
 import pickle
 import gdown
 import os
+from tensorflow.keras.preprocessing.text import tokenizer_from_json  # ✅ مهم
 
 file_id = "10jfNR3NcOh1MO2xpybPP9LrlRsTsHUzM"
 url = f"https://drive.google.com/uc?id={file_id}"
-output = "tokenizerrr.pkl"
-import tensorflow.keras
-
+output = "tokenizer.pkl"
 
 try:
     if not os.path.exists(output):
@@ -16,7 +15,7 @@ try:
 
     with open(output, "rb") as f:
         tokenizer = pickle.load(f)
-        st.success("✅ تم تحميل التوكينايزر")
+        st.success("✅ تم تحميل التوكينايزر بنجاح")
+
 except Exception as e:
     st.error(f"❌ حدث خطأ أثناء تحميل التوكينايزر: {e}")
-
