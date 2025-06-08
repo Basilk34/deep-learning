@@ -1,19 +1,19 @@
-
 import streamlit as st
 import numpy as np
-import pickle  # ✅ هذا مهم
+import pickle
 import gdown
 import os
 
-# Google Drive رابط التوكينايزر
 file_id = "10jfNR3NcOh1MO2xpybPP9LrlRsTsHUzM"
 url = f"https://drive.google.com/uc?id={file_id}"
 output = "tokenizer.pkl"
 
-# تحميل الملف فقط إذا لم يكن موجود
-if not os.path.exists(output):
-    gdown.download(url, output, quiet=False)
+try:
+    if not os.path.exists(output):
+        gdown.download(url, output, quiet=False)
 
-with open("tokenizer.pkl", "rb") as f:
-    tokenizer = pickle.load(f)
-    print("✅ تم تحميل التوكينايزر داخل المتغير.")
+    with open(output, "rb") as f:
+        tokenizer = pickle.load(f)
+        st.success("✅ تم تحميل التوكينايزر بنجاح")
+except Exception as e:
+    st.error(f"❌ فشل تحميل التوكينايزر: {e}")
