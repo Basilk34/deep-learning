@@ -39,7 +39,6 @@ class AttentionLayer(Layer):
 YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
 TOKENIZER_PATH = "tokenizer.pkl"
 MODEL_PATH = "arabic_sentiment_cnn_lstm_att_20250605_1224.h5"
-
 LABELS = ['negative', 'neutral', 'positive']
 MAX_COMMENTS = 50
 
