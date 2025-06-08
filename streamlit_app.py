@@ -23,3 +23,7 @@ model_img1 = tf.keras.models.load_model("models/image_model_v1.h5")
 model_img2 = tf.keras.models.load_model("models/image_model_v2.h5")
 
 # ... كمل بعد هيك الواجهة والتصنيف
+if os.path.exists("models/image_model.h5"):
+    print("✅ image_model.h5 downloaded successfully")
+else:
+    print("❌ Failed to download image_model.h5")
