@@ -1,2 +1,7 @@
 streamlit
+gdown
+tensorflow
+numpy
 google-api-python-client
+youtube-comment-downloader
+
