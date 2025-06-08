@@ -2,13 +2,7 @@ import streamlit as st
 import gdown
 import os
 import pickle
-import numpy as np
-import re
-from collections import Counter
-from youtube_comment_downloader import YoutubeCommentDownloader
-from googleapiclient.discovery import build
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+
 
 
 @st.cache_resource
