@@ -10,9 +10,8 @@ output = "tokenizer.pkl"
 # تحميل الملف فقط إذا لم يكن موجود
 if not os.path.exists(output):
     gdown.download(url, output, quiet=False)
-import os
+import pickle
 
-if os.path.exists("tokenizer.pkl"):
-    print("✅ تم تحميل التوكينايزر بنجاح!")
-else:
-    print("❌ لم يتم تحميل التوكينايزر.")
+with open("tokenizer.pkl", "rb") as f:
+    tokenizer = pickle.load(f)
+    print("✅ تم تحميل التوكينايزر داخل المتغير.")
