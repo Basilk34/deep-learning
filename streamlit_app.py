@@ -1,4 +1,5 @@
 import streamlit as st
+import gdown
 import os
 import pickle
 import numpy as np
@@ -11,26 +12,40 @@ import tensorflow as tf
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ============================
-# 🔐 CONFIG
-# ============================
+# ======================
+# 🔧 CONFIG
+# ======================
 YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
-TOKENIZER_PATH = "tokenizer.pkl"
+MODEL_ID = "1yrWFfq7HDUt2kgpOaG0oUMrz1vjxjWQs"
+TOKENIZER_ID = "1vsrmpQ1XrOiboH8ZrlTraYp3uuLfiPET"
+
 MODEL_PATH = "arabic_sentiment_model.h5"
+TOKENIZER_PATH = "tokenizer.pkl"
 LABELS = ['negative', 'neutral', 'positive']
 MAX_COMMENTS = 50
 
-# ============================
-# 📥 Load Tokenizer and Model
-# ============================
+# ======================
+# 📦 تحميل الموديل والتوكينايزر من Google Drive
+# ======================
+if not os.path.exists(MODEL_PATH):
+    st.info("⏳ جاري تحميل الموديل من Google Drive...")
+    gdown.download(f"https://drive.google.com/uc?id={MODEL_ID}", MODEL_PATH, quiet=False)
+
+if not os.path.exists(TOKENIZER_PATH):
+    st.info("⏳ جاري تحميل التوكينايزر من Google Drive...")
+    gdown.download(f"https://drive.google.com/uc?id={TOKENIZER_ID}", TOKENIZER_PATH, quiet=False)
+
+# ======================
+# ✅ تحميل الموديل والتوكينايزر
+# ======================
 with open(TOKENIZER_PATH, 'rb') as f:
     tokenizer = pickle.load(f)
 
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
-# ============================
-# 🔍 Helper Functions
-# ============================
+# ======================
+# 🔍 الوظائف المساعدة
+# ======================
 def is_arabic(text):
     return bool(re.search(r'[\u0600-\u06FF]', text))
 
@@ -76,9 +91,9 @@ def summarize_results(results):
         for label, count in counter.items()
     }
 
-# ============================
+# ======================
 # 🎯 Streamlit App
-# ============================
+# ======================
 st.title("🎬 تحليل مشاعر تعليقات يوتيوب حسب موضوع معين")
 
 topic = st.text_input("📝 أدخل موضوع تريد البحث عنه (مثال: كرة قدم، دراما، موسيقى):")
