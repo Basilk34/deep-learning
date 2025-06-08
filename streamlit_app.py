@@ -6,7 +6,7 @@ import os
 
 file_id = "10jfNR3NcOh1MO2xpybPP9LrlRsTsHUzM"
 url = f"https://drive.google.com/uc?id={file_id}"
-output = "tokenizer.pkl"
+output = "tokenizerrr.pkl"
 
 try:
     if not os.path.exists(output):
