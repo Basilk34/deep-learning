@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # 🔧 CONFIG
 # ======================
 YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
-MODEL_ID = "1yrWFfq7HDUt2kgpOaG0oUMrz1vjxjWQs"
+MODEL_ID = "1E7OO10EhHXa6RZJoA5xz07wwlu8l8eRi"
 TOKENIZER_ID = "1vsrmpQ1XrOiboH8ZrlTraYp3uuLfiPET"
 
 MODEL_PATH = "arabic_sentiment_model.h5"
@@ -25,7 +25,7 @@ LABELS = ['negative', 'neutral', 'positive']
 MAX_COMMENTS = 50
 
 # ======================
-# 📦 تحميل الموديل والتوكينايزر من Google Drive
+# 📦 تحميل الملفات من Google Drive
 # ======================
 if not os.path.exists(MODEL_PATH):
     st.info("⏳ جاري تحميل الموديل من Google Drive...")
@@ -36,7 +36,7 @@ if not os.path.exists(TOKENIZER_PATH):
     gdown.download(f"https://drive.google.com/uc?id={TOKENIZER_ID}", TOKENIZER_PATH, quiet=False)
 
 # ======================
-# ✅ تحميل الموديل والتوكينايزر
+# ✅ تحميل النموذج والتوكينايزر
 # ======================
 with open(TOKENIZER_PATH, 'rb') as f:
     tokenizer = pickle.load(f)
@@ -44,7 +44,7 @@ with open(TOKENIZER_PATH, 'rb') as f:
 model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 # ======================
-# 🔍 الوظائف المساعدة
+# 🔍 وظائف المساعدة
 # ======================
 def is_arabic(text):
     return bool(re.search(r'[\u0600-\u06FF]', text))
