@@ -13,3 +13,6 @@ langdetect
 geotext
 matplotlib
 gdown
+
+Pillow
+opencv-python
