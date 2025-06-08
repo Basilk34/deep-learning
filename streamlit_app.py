@@ -12,26 +12,41 @@ import tensorflow as tf
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# إعدادات عامة
+# ============================
+# 🔐 CONFIG
+# ============================
 YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
 TOKENIZER_ID = "1vsrmpQ1XrOiboH8ZrlTraYp3uuLfiPET"
+MODEL_ID = "1EnKgCo20_-lMkhsJPsdvPiGe6jK7M3EJ"
 TOKENIZER_PATH = "tokenizer.pkl"
-MODEL_PATH = "models/arabic_sentiment_cnn_lstm_att_20250605_1224.h5"
+MODEL_PATH = "models/arabic_sentiment_model.h5"
 LABELS = ['negative', 'neutral', 'positive']
 MAX_COMMENTS = 50
 
-# تحميل التوكينايزر إذا مش موجود
+# ============================
+# 📥 Download Tokenizer and Model
+# ============================
 os.makedirs("models", exist_ok=True)
+
 if not os.path.exists(TOKENIZER_PATH):
+    st.info("📥 تحميل التوكينايزر...")
     gdown.download(f"https://drive.google.com/uc?id={TOKENIZER_ID}", TOKENIZER_PATH, quiet=False)
 
-# تحميل التوكينايزر والموديل
+if not os.path.exists(MODEL_PATH):
+    st.info("📥 تحميل موديل التصنيف...")
+    gdown.download(f"https://drive.google.com/uc?id={MODEL_ID}", MODEL_PATH, quiet=False)
+
+# ============================
+# 🧠 Load Model & Tokenizer
+# ============================
 with open(TOKENIZER_PATH, 'rb') as f:
     tokenizer = pickle.load(f)
 
 model = tf.keras.models.load_model(MODEL_PATH)
 
-# دوال مساعدة
+# ============================
+# 🔍 Helper Functions
+# ============================
 def is_arabic(text):
     return bool(re.search(r'[\u0600-\u06FF]', text))
 
@@ -77,9 +92,9 @@ def summarize_results(results):
         for label, count in counter.items()
     }
 
-# ================================
+# ============================
 # 🎯 Streamlit App
-# ================================
+# ============================
 st.title("🎬 تحليل مشاعر تعليقات يوتيوب حسب موضوع معين")
 
 topic = st.text_input("📝 أدخل موضوع تريد البحث عنه (مثال: كرة قدم، دراما، موسيقى):")
@@ -111,7 +126,6 @@ if topic:
                     for label, (count, percent) in summary.items():
                         st.write(f"**{label}**: {count} تعليق ({percent:.2f}%)")
 
-                    # رسم بياني
                     st.markdown("## 📈 الرسم البياني:")
                     fig, ax = plt.subplots()
                     ax.bar(summary.keys(), [v[0] for v in summary.values()])
