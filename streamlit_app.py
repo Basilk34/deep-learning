@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 import random
 
 # إعدادات الـ API
-YOUTUBE_API_KEY = "YOUR_YOUTUBE_API_KEY"
+YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
 MAX_RESULTS = 10
 REGION_CODE = "SA"  # يمكنك تغييره حسب البلد (مثلاً "EG" لمصر أو "JO" للأردن)
 
