@@ -1,31 +1,26 @@
-# 1. تحميل gdown وتنزيل الموديلات من Google Drive
+import streamlit as st
 import gdown
 import os
 
+# إنشاء مجلد الموديلات
 os.makedirs("models", exist_ok=True)
 
-# روابط Google Drive
-image_model_v1_id = "18e9JcIpWWkRke1Rh2fEu_B1u6pbpzBh0"
-image_model_v2_id = "1QiS1oEYxnIbj3ykZ-OmfqmUj7u0yHYN3"
+# ملفات التحميل (اسم الملف → Google Drive File ID)
+models_to_download = {
+    "models/image_model_v1.h5": "18e9JcIpWWkRke1Rh2fEu_B1u6pbpzBh0",
+    "models/image_model_v2.h5": "1QiS1oEYxnIbj3ykZ-OmfqmUj7u0yHYN3"
+}
 
-gdown.download(f"https://drive.google.com/uc?id={image_model_v1_id}", "models/image_model_v1.h5", quiet=False)
-gdown.download(f"https://drive.google.com/uc?id={image_model_v2_id}", "models/image_model_v2.h5", quiet=False)
+st.subheader("📥 تحميل الموديلات من Google Drive")
 
-# لو عندك موديل نص وتوكينايزر ضيفهم بنفس الطريقة
-# gdown.download(...)
-
-# 2. استيراد Streamlit والموديلات بعد ما نزلوا
-import streamlit as st
-import tensorflow as tf
-
-# تحميل الموديلات
-model_img1 = tf.keras.models.load_model("models/image_model_v1.h5")
-model_img2 = tf.keras.models.load_model("models/image_model_v2.h5")
-
-import streamlit as st
-
-if os.path.exists("models/image_model.h5"):
-    st.success("📥 image_model.h5 تم تحميله بنجاح!")
-else:
-    st.error("❌ مشكلة في تحميل image_model.h5")
+for filepath, file_id in models_to_download.items():
+    if not os.path.exists(filepath):
+        try:
+            url = f"https://drive.google.com/uc?id={file_id}"
+            st.info(f"🔄 جاري تحميل: {os.path.basename(filepath)}")
+            gdown.download(url, filepath, quiet=False)
+        except Exception as e:
+            st.error(f"❌ مشكلة في تحميل {os.path.basename(filepath)}")
+    else:
+        st.success(f"✅ {os.path.basename(filepath)} تم تحميله مسبقاً")
 
