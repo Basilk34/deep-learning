@@ -1,4 +1,7 @@
 
+import streamlit as st
+import numpy as np
+import pickle  # ✅ هذا مهم
 import gdown
 import os
 
@@ -10,7 +13,6 @@ output = "tokenizer.pkl"
 # تحميل الملف فقط إذا لم يكن موجود
 if not os.path.exists(output):
     gdown.download(url, output, quiet=False)
-import pickle
 
 with open("tokenizer.pkl", "rb") as f:
     tokenizer = pickle.load(f)
