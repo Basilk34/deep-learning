@@ -7,6 +7,7 @@ import os
 file_id = "10jfNR3NcOh1MO2xpybPP9LrlRsTsHUzM"
 url = f"https://drive.google.com/uc?id={file_id}"
 output = "tokenizerrr.pkl"
+from tensorflow.keras.preprocessing.text import tokenizer_from_json
 
 try:
     if not os.path.exists(output):
