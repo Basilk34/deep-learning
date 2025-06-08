@@ -1,80 +1,120 @@
 import streamlit as st
-import numpy as np
-import tensorflow as tf
-from PIL import Image
-import mediapipe as mp
-from tensorflow.keras.applications.vgg16 import preprocess_input
 import gdown
 import os
+import pickle
+import numpy as np
+import re
+from collections import Counter
+from googleapiclient.discovery import build
+from youtube_comment_downloader import YoutubeCommentDownloader
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import tensorflow as tf
+import pandas as pd
+import matplotlib.pyplot as plt
 
-# أسماء التصنيفات
-class_names = ['Neutral', 'negative', 'positive']
+# إعدادات عامة
+YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
+TOKENIZER_ID = "1vsrmpQ1XrOiboH8ZrlTraYp3uuLfiPET"
+TOKENIZER_PATH = "tokenizer.pkl"
+MODEL_PATH = "models/arabic_sentiment_cnn_lstm_att_20250605_1224.h5"
+LABELS = ['negative', 'neutral', 'positive']
+MAX_COMMENTS = 50
 
-# روابط الموديلات
-models_to_download = {
-    "models/model_faces.h5": "18e9JcIpWWkRke1Rh2fEu_B1u6pbpzBh0",     # موديل الوجوه
-    "models/model_general.h5": "1QiS1oEYxnIbj3ykZ-OmfqmUj7u0yHYN3"    # موديل الصور العامة
-}
-
-# تحميل الموديلات من Google Drive
+# تحميل التوكينايزر إذا مش موجود
 os.makedirs("models", exist_ok=True)
-for path, file_id in models_to_download.items():
-    if not os.path.exists(path):
-        gdown.download(f"https://drive.google.com/uc?id={file_id}", path, quiet=False)
+if not os.path.exists(TOKENIZER_PATH):
+    gdown.download(f"https://drive.google.com/uc?id={TOKENIZER_ID}", TOKENIZER_PATH, quiet=False)
 
-# تحميل النماذج
-model_faces = tf.keras.models.load_model("models/model_faces.h5")
-model_general = tf.keras.models.load_model("models/model_general.h5")
+# تحميل التوكينايزر والموديل
+with open(TOKENIZER_PATH, 'rb') as f:
+    tokenizer = pickle.load(f)
 
-# إعداد mediapipe
-mp_face_detection = mp.solutions.face_detection
+model = tf.keras.models.load_model(MODEL_PATH)
 
-# واجهة المستخدم
-st.title("🧠 تحليل المشاعر من الصور")
+# دوال مساعدة
+def is_arabic(text):
+    return bool(re.search(r'[\u0600-\u06FF]', text))
 
-uploaded_file = st.file_uploader("📷 ارفع صورة", type=["jpg", "jpeg", "png"])
+def search_trending_videos_by_topic(api_key, topic, max_results=5):
+    youtube = build('youtube', 'v3', developerKey=api_key)
+    request = youtube.search().list(
+        part='snippet',
+        q=topic,
+        maxResults=max_results,
+        type='video',
+        relevanceLanguage='ar',
+        regionCode='SA'
+    )
+    response = request.execute()
+    return [{
+        'title': item['snippet']['title'],
+        'videoId': item['id']['videoId']
+    } for item in response.get('items', [])]
 
-if uploaded_file is not None:
-    image = Image.open(uploaded_file).convert("RGB")
-    image_np = np.array(image)
-    st.image(image, caption="📷 الصورة الأصلية", use_column_width=True)
+def fetch_arabic_comments(video_id, max_comments=50):
+    downloader = YoutubeCommentDownloader()
+    raw_comments = []
+    for comment in downloader.get_comments_from_url(f"https://www.youtube.com/watch?v={video_id}", sort_by=1):
+        text = comment['text']
+        if is_arabic(text):
+            raw_comments.append(text)
+        if len(raw_comments) >= max_comments:
+            break
+    return raw_comments
 
-    face_detected = False
-    face_crop = None
+def predict_sentiment(comments, max_len=100):
+    sequences = tokenizer.texts_to_sequences(comments)
+    padded = pad_sequences(sequences, maxlen=max_len)
+    preds = model.predict(padded)
+    return list(zip(comments, [LABELS[np.argmax(p)] for p in preds]))
 
-    with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5) as detector:
-        results = detector.process(image_np)
-        if results.detections:
-            # تم الكشف عن وجه
-            face_detected = True
-            bbox = results.detections[0].location_data.relative_bounding_box
-            ih, iw, _ = image_np.shape
-            x = int(bbox.xmin * iw)
-            y = int(bbox.ymin * ih)
-            w = int(bbox.width * iw)
-            h = int(bbox.height * ih)
-            face_crop = image_np[y:y+h, x:x+w]
+def summarize_results(results):
+    predictions = [s for _, s in results]
+    counter = Counter(predictions)
+    total = len(predictions)
+    return {
+        label: (count, (count / total) * 100 if total else 0)
+        for label, count in counter.items()
+    }
 
-    if face_detected:
-        st.info("✅ تم الكشف عن وجه، سيتم استخدام موديل الوجوه")
-        face_resized = Image.fromarray(face_crop).resize((224, 224))
-        img_array = np.expand_dims(np.array(face_resized), axis=0)
-        img_array = preprocess_input(img_array)
-        prediction = model_faces.predict(img_array)
-        st.image(face_crop, caption="🧑‍🦱 الوجه المقطوع", use_column_width=False)
-        model_used = "👤 موديل الوجوه"
+# ================================
+# 🎯 Streamlit App
+# ================================
+st.title("🎬 تحليل مشاعر تعليقات يوتيوب حسب موضوع معين")
+
+topic = st.text_input("📝 أدخل موضوع تريد البحث عنه (مثال: كرة قدم، دراما، موسيقى):")
+
+if topic:
+    st.info("🔍 جاري البحث عن فيديوهات ترند...")
+    videos = search_trending_videos_by_topic(YOUTUBE_API_KEY, topic, max_results=5)
+
+    if videos:
+        selected_video = st.selectbox("📺 اختر فيديو لتحليل التعليقات:", [v['title'] for v in videos])
+        selected_id = next(v['videoId'] for v in videos if v['title'] == selected_video)
+        video_url = f"https://www.youtube.com/watch?v={selected_id}"
+        st.markdown(f"🔗 [رابط الفيديو]({video_url})")
+
+        if st.button("🚀 تحليل التعليقات"):
+            with st.spinner("📥 جاري تحميل وتحليل التعليقات..."):
+                comments = fetch_arabic_comments(selected_id, MAX_COMMENTS)
+                if not comments:
+                    st.warning("❌ لم يتم العثور على تعليقات عربية.")
+                else:
+                    results = predict_sentiment(comments)
+                    summary = summarize_results(results)
+
+                    df = pd.DataFrame(results, columns=["التعليق", "التصنيف"])
+                    st.markdown("## 📝 التعليقات المصنفة:")
+                    st.dataframe(df)
+
+                    st.markdown("## 📊 ملخص التصنيفات:")
+                    for label, (count, percent) in summary.items():
+                        st.write(f"**{label}**: {count} تعليق ({percent:.2f}%)")
+
+                    # رسم بياني
+                    st.markdown("## 📈 الرسم البياني:")
+                    fig, ax = plt.subplots()
+                    ax.bar(summary.keys(), [v[0] for v in summary.values()])
+                    st.pyplot(fig)
     else:
-        st.warning("⚠️ لم يتم الكشف عن وجه، سيتم استخدام موديل الصور العامة")
-        full_resized = image.resize((224, 224))
-        img_array = np.expand_dims(np.array(full_resized), axis=0)
-        img_array = preprocess_input(img_array)
-        prediction = model_general.predict(img_array)
-        model_used = "🖼️ موديل الصورة الكاملة"
-
-    predicted_class = class_names[np.argmax(prediction)]
-    st.success(f"✅ التصنيف النهائي: `{predicted_class}`")
-    st.markdown(f"🧠 النموذج المستخدم: **{model_used}**")
-
-    st.markdown("### 🔢 احتمالات التصنيفات:")
-    for cls, prob in zip(class_names, prediction[0]):
-        st.write(f"**{cls}**: {prob:.2f}")
+        st.warning("❌ لم يتم العثور على فيديوهات ترند للموضوع.")
