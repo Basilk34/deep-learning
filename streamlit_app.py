@@ -41,8 +41,8 @@ if not os.path.exists(MODEL_PATH):
 # ============================
 with open(TOKENIZER_PATH, 'rb') as f:
     tokenizer = pickle.load(f)
+model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
-model = tf.keras.models.load_model(MODEL_PATH)
 
 # ============================
 # 🔍 Helper Functions
