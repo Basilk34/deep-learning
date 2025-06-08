@@ -1,5 +1,4 @@
 import streamlit as st
-import gdown
 import os
 import pickle
 import numpy as np
@@ -16,33 +15,18 @@ import matplotlib.pyplot as plt
 # 🔐 CONFIG
 # ============================
 YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
-TOKENIZER_ID = "1vsrmpQ1XrOiboH8ZrlTraYp3uuLfiPET"
-MODEL_ID = "1EnKgCo20_-lMkhsJPsdvPiGe6jK7M3EJ"
-TOKENIZER_PATH = "tokenizer.pkl"
-MODEL_PATH = "models/arabic_sentiment_model.h5"
+TOKENIZER_PATH = "tokenizer.pkl"  # تأكد أنه موجود بجانب app.py
+MODEL_PATH = "arabic_sentiment_model_cleaned.h5"  # الموديل الجديد المحلي
 LABELS = ['negative', 'neutral', 'positive']
 MAX_COMMENTS = 50
 
 # ============================
-# 📥 Download Tokenizer and Model
-# ============================
-os.makedirs("models", exist_ok=True)
-
-if not os.path.exists(TOKENIZER_PATH):
-    st.info("📥 تحميل التوكينايزر...")
-    gdown.download(f"https://drive.google.com/uc?id={TOKENIZER_ID}", TOKENIZER_PATH, quiet=False)
-
-if not os.path.exists(MODEL_PATH):
-    st.info("📥 تحميل موديل التصنيف...")
-    gdown.download(f"https://drive.google.com/uc?id={MODEL_ID}", MODEL_PATH, quiet=False)
-
-# ============================
-# 🧠 Load Model & Tokenizer
+# 📥 Load Tokenizer and Model
 # ============================
 with open(TOKENIZER_PATH, 'rb') as f:
     tokenizer = pickle.load(f)
-model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
+model = tf.keras.models.load_model(MODEL_PATH, compile=False)
 
 # ============================
 # 🔍 Helper Functions
