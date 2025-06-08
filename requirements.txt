@@ -31,5 +31,11 @@ pandas
 matplotlib
 google-api-python-client
 youtube-comment-downloader
-
+streamlit
+gdown
+tensorflow
+pandas
+matplotlib
+google-api-python-client
+youtube-comment-downloader
 
