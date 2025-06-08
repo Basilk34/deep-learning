@@ -13,7 +13,10 @@ langdetect
 geotext
 matplotlib
 gdown
-
+streamlit
+tensorflow
+gdown
 Pillow
 opencv-python-headless==4.9.0.80
+
 
