@@ -5,7 +5,6 @@ import tensorflow as tf
 from tensorflow.keras.applications.vgg16 import preprocess_input
 import gdown
 import os
-import cv2
 
 # أسماء الكلاسات
 class_names = ['Neutral', 'negative', 'positive']
@@ -16,7 +15,7 @@ models_to_download = {
     "models/image_model_v2.h5": "1QiS1oEYxnIbj3ykZ-OmfqmUj7u0yHYN3"   # الوجوه
 }
 
-# تأكد من تحميل الموديلات
+# تحميل الموديلات
 os.makedirs("models", exist_ok=True)
 for filepath, file_id in models_to_download.items():
     if not os.path.exists(filepath):
@@ -27,43 +26,35 @@ for filepath, file_id in models_to_download.items():
 model_general = tf.keras.models.load_model("models/image_model_v1.h5")
 model_faces = tf.keras.models.load_model("models/image_model_v2.h5")
 
-# واجهة المستخدم
-st.title("🧠 تحليل المشاعر من الصور (مع أو بدون وجه)")
+# واجهة Streamlit
+st.title("🧠 تحليل المشاعر من الصور")
 
-uploaded_file = st.file_uploader("📷 ارفع صورة لتحليل المشاعر", type=["jpg", "jpeg", "png"])
+# اختيار الموديل يدويًا
+model_option = st.selectbox("اختر نوع الموديل:", ["🖼️ الصور العامة", "👤 الوجوه فقط"])
+
+# رفع صورة
+uploaded_file = st.file_uploader("📷 ارفع صورة", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # عرض الصورة
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="📷 الصورة المدخلة", use_column_width=True)
 
-    # تحويل للصيغة التي يفهمها OpenCV
-    original_img = np.array(image)
-    gray = cv2.cvtColor(original_img, cv2.COLOR_RGB2GRAY)
+    img_resized = image.resize((224, 224))
+    img_array = np.expand_dims(np.array(img_resized), axis=0)
+    img_array = preprocess_input(img_array)
 
-    # كشف الوجه
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
-
-    if len(faces) > 0:
-        x, y, w, h = faces[0]
-        face_img = original_img[y:y+h, x:x+w]
-        resized = cv2.resize(face_img, (224, 224))
-        input_data = np.expand_dims(resized, axis=0)
-        input_data = preprocess_input(input_data)
-        prediction = model_faces.predict(input_data)
-        model_used = "🤖 موديل الوجوه"
-    else:
-        resized = cv2.resize(original_img, (224, 224))
-        input_data = np.expand_dims(resized, axis=0)
-        input_data = preprocess_input(input_data)
-        prediction = model_general.predict(input_data)
+    # اختيار الموديل حسب المستخدم
+    if model_option == "🖼️ الصور العامة":
+        prediction = model_general.predict(img_array)
         model_used = "🖼️ موديل الصور العامة"
+    else:
+        prediction = model_faces.predict(img_array)
+        model_used = "👤 موديل الوجوه"
 
     predicted_class = class_names[np.argmax(prediction)]
 
     st.markdown(f"### ✅ التصنيف: `{predicted_class}`")
-    st.markdown(f"### 📌 تم استخدام: `{model_used}`")
+    st.markdown(f"**🧠 الموديل المستخدم: `{model_used}`**")
 
     st.markdown("### 🔢 احتمالات التصنيفات:")
     for cls, prob in zip(class_names, prediction[0]):
