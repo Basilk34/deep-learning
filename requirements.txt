@@ -23,6 +23,13 @@ tensorflow
 Pillow
 mediapipe
 gdown
-
+streamlit
+gdown
+tensorflow
+Pillow
+pandas
+matplotlib
+google-api-python-client
+youtube-comment-downloader
 
 
