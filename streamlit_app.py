@@ -22,8 +22,10 @@ import tensorflow as tf
 model_img1 = tf.keras.models.load_model("models/image_model_v1.h5")
 model_img2 = tf.keras.models.load_model("models/image_model_v2.h5")
 
-# ... كمل بعد هيك الواجهة والتصنيف
+import streamlit as st
+
 if os.path.exists("models/image_model.h5"):
-    print("✅ image_model.h5 downloaded successfully")
+    st.success("📥 image_model.h5 تم تحميله بنجاح!")
 else:
-    print("❌ Failed to download image_model.h5")
+    st.error("❌ مشكلة في تحميل image_model.h5")
+
