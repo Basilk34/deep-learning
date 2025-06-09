@@ -1,20 +1,17 @@
 import base64
 import os
-import cv2
 import dash
 from dash import dcc, html, Input, Output, State, ctx
 from utils.classify_image import classify_image
 from utils.youtube_sentiment import get_trending_videos, fetch_arabic_comments, analyze_comments
 
-# ============== إعداد Dash ==============
 app = dash.Dash(__name__)
 server = app.server
 app.title = "تحليل مشاعر الصور والتعليقات"
 
-# ============== الحصول على مفتاح YouTube من المتغير البيئي ==============
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+# 🔐 مفتاح YouTube API من المتغير البيئي
+YOUTUBE_API_KEY = os.getenv("AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk")
 
-# ============== تصميم الواجهة ==============
 app.layout = html.Div([
     html.H1("📊 مشروع تحليل المشاعر - هنودي تاج راسي 👑", style={'textAlign': 'center'}),
 
@@ -36,7 +33,7 @@ app.layout = html.Div([
     html.Div(id='comments-result', style={'marginTop': '20px'})
 ])
 
-# ============== معالجة الصورة ==============
+# 📸 تحليل صورة
 @app.callback(
     Output('image-result', 'children'),
     Input('upload-image', 'contents'),
@@ -53,10 +50,10 @@ def process_image(content, filename):
     os.remove(path)
     return html.Div([
         html.Img(src=content, style={'width': '300px'}),
-        html.H4(f"النتيجة: {label}")
+        html.H4(f"📷 النتيجة: {label}")
     ])
 
-# ============== جلب فيديوهات ترند ==============
+# 🔍 جلب فيديوهات ترند
 @app.callback(
     Output('video-dropdown', 'options'),
     Input('search-button', 'n_clicks'),
@@ -68,7 +65,7 @@ def fetch_videos(n, topic):
     results = get_trending_videos(api_key=YOUTUBE_API_KEY, query=topic, region='SA')
     return [{'label': title, 'value': vid} for vid, title in results]
 
-# ============== تصنيف التعليقات ==============
+# 💬 تحليل تعليقات الفيديو
 @app.callback(
     Output('comments-result', 'children'),
     Input('analyze-comments', 'n_clicks'),
@@ -80,10 +77,10 @@ def analyze(n, video_id):
     comments = fetch_arabic_comments(video_id)
     results, summary = analyze_comments(comments)
     return html.Div([
-        html.H4("ملخص المشاعر:"),
+        html.H4("📊 ملخص المشاعر:"),
         html.Ul([html.Li(f"{label}: {count} تعليق") for label, count in summary.items()]),
         html.Hr(),
-        html.H4("تفاصيل:"),
+        html.H4("📝 التفاصيل:"),
         html.Ul([
             html.Li([
                 html.Span(f"🗣️ {text} ", style={'fontWeight': 'bold'}),
