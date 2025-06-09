@@ -1,10 +1,5 @@
-dash
-opencv-python
+streamlit
 tensorflow
-keras
-numpy
-pillow
-gdown
+opencv-python-headless
 google-api-python-client
 youtube-comment-downloader
-gunicorn
