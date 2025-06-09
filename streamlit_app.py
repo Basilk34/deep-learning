@@ -1,21 +1,13 @@
-import streamlit as st
-import numpy as np
 import pickle
-import gdown
-import os
-from tensorflow.keras.preprocessing.text import tokenizer_from_json  # ✅ مهم
+import streamlit as st
+import tensorflow as tf
 
-file_id = "10jfNR3NcOh1MO2xpybPP9LrlRsTsHUzM"
-url = f"https://drive.google.com/uc?id={file_id}"
-output = "tokenizer.pkl"
+# Load the model
+model = tf.keras.models.load_model("arabic_sentiment_model_clean.h5", compile=False)
 
-try:
-    if not os.path.exists(output):
-        gdown.download(url, output, quiet=False)
+# Load the tokenizer
+with open("tok.pkl", "rb") as f:
+    tokenizer = pickle.load(f)
 
-    with open(output, "rb") as f:
-        tokenizer = pickle.load(f)
-        st.success("✅ تم تحميل التوكينايزر بنجاح")
+st.success("✅ تم تحميل الموديل والتوكينايزر بنجاح.")
 
-except Exception as e:
-    st.error(f"❌ حدث خطأ أثناء تحميل التوكينايزر: {e}")
