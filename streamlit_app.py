@@ -1,96 +1,93 @@
-# ✅ streamlit_app.py - تحليل مشاعر تعليقات يوتيوب بالعربي
+import base64
+import os
+import cv2
+import dash
+from dash import dcc, html, Input, Output, State, ctx
+from utils.classify_image import classify_image
+from utils.youtube_sentiment import get_trending_videos, fetch_arabic_comments, analyze_comments
 
-import streamlit as st
-import pickle
-import numpy as np
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from googleapiclient.discovery import build
-from youtube_comment_downloader import YoutubeCommentDownloader
-from collections import Counter
-import re
+# ============== إعداد Dash ==============
+app = dash.Dash(__name__)
+server = app.server
+app.title = "تحليل مشاعر الصور والتعليقات"
 
-# ========== الإعدادات العامة ==========
-MODEL_PATH = "arabic_sentiment_model_clean.h5"
-TOKENIZER_PATH = "tok.pkl"
-YOUTUBE_API_KEY = "AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk"
-REGION = "SA"
-MAX_COMMENTS = 50
-MAX_LEN = 100
-LABELS = ['negative', 'neutral', 'positive']
+# ============== تصميم الواجهة ==============
+app.layout = html.Div([
+    html.H1("📊 مشروع تحليل المشاعر - هنودي تاج راسي 👑", style={'textAlign': 'center'}),
 
-# ========== تحميل التوكينايزر والموديل ==========
-with open(TOKENIZER_PATH, "rb") as f:
-    tokenizer = pickle.load(f)
+    html.H2("📷 تحليل صورة"),
+    dcc.Upload(
+        id='upload-image',
+        children=html.Button('ارفع صورة'),
+        multiple=False
+    ),
+    html.Div(id='image-result', style={'marginTop': '20px'}),
 
-model = load_model(MODEL_PATH)
+    html.Hr(),
 
-# ========== الدوال ==========
-def is_arabic(text):
-    return bool(re.search(r"[\u0600-\u06FF]", text))
+    html.H2("🎥 تحليل تعليقات فيديو ترند حسب موضوع"),
+    dcc.Input(id='topic-input', type='text', placeholder='اكتب موضوع مثل: كرة قدم', style={'width': '50%'}),
+    html.Button('🔍 بحث عن الفيديوهات', id='search-button', n_clicks=0),
+    dcc.Dropdown(id='video-dropdown', placeholder='اختر فيديو'),
+    html.Button('✅ صنف التعليقات', id='analyze-comments', n_clicks=0),
+    html.Div(id='comments-result', style={'marginTop': '20px'})
+])
 
-def get_trending_videos(api_key, query, region=REGION, max_results=10):
-    youtube = build('youtube', 'v3', developerKey=api_key)
-    response = youtube.search().list(
-        q=query,
-        part='snippet',
-        type='video',
-        regionCode=region,
-        maxResults=max_results
-    ).execute()
-    return [(item['snippet']['title'], item['id']['videoId']) for item in response.get("items", [])]
+# ============== معالجة الصورة ==============
+@app.callback(
+    Output('image-result', 'children'),
+    Input('upload-image', 'contents'),
+    State('upload-image', 'filename')
+)
+def process_image(content, filename):
+    if content is None:
+        return ''
+    _, b64 = content.split(',')
+    path = f"temp_{filename}"
+    with open(path, 'wb') as f:
+        f.write(base64.b64decode(b64))
+    label, probs = classify_image(path)
+    os.remove(path)
+    return html.Div([
+        html.Img(src=content, style={'width': '300px'}),
+        html.H4(f"النتيجة: {label}")
+    ])
 
-def get_arabic_comments(video_id, max_comments=50):
-    downloader = YoutubeCommentDownloader()
-    raw_comments = []
-    for comment in downloader.get_comments_from_url(f"https://www.youtube.com/watch?v={video_id}", sort_by=1):
-        text = comment['text']
-        if is_arabic(text):
-            raw_comments.append(text)
-        if len(raw_comments) >= max_comments:
-            break
-    return raw_comments
+# ============== جلب فيديوهات ترند ==============
+@app.callback(
+    Output('video-dropdown', 'options'),
+    Input('search-button', 'n_clicks'),
+    State('topic-input', 'value')
+)
+def fetch_videos(n, topic):
+    if n == 0 or not topic:
+        return []
+    results = get_trending_videos(api_key="AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk", query=topic, region='SA')
+    return [{'label': title, 'value': vid} for vid, title in results]
 
-def predict_sentiments(comments):
-    sequences = tokenizer.texts_to_sequences(comments)
-    padded = pad_sequences(sequences, maxlen=MAX_LEN)
-    predictions = model.predict(padded)
-    labels = [LABELS[np.argmax(p)] for p in predictions]
-    return list(zip(comments, labels))
+# ============== تصنيف التعليقات ==============
+@app.callback(
+    Output('comments-result', 'children'),
+    Input('analyze-comments', 'n_clicks'),
+    State('video-dropdown', 'value')
+)
+def analyze(n, video_id):
+    if n == 0 or not video_id:
+        return ''
+    comments = fetch_arabic_comments(video_id)
+    results, summary = analyze_comments(comments)
+    return html.Div([
+        html.H4("ملخص المشاعر:"),
+        html.Ul([html.Li(f"{label}: {count} تعليق") for label, count in summary.items()]),
+        html.Hr(),
+        html.H4("تفاصيل:"),
+        html.Ul([
+            html.Li([
+                html.Span(f"🗣️ {text} ", style={'fontWeight': 'bold'}),
+                html.Span(f"→ التصنيف: {sentiment}")
+            ]) for text, sentiment, _ in results
+        ])
+    ])
 
-def summarize(predictions):
-    stats = Counter([label for _, label in predictions])
-    total = sum(stats.values())
-    return {label: f"{count} ({(count/total)*100:.1f}%)" for label, count in stats.items()}
-
-# ========== واجهة Streamlit ==========
-st.set_page_config(page_title="تحليل مشاعر ترند يوتيوب بالعربي")
-st.title("🔍 مشروع تحليل المشاعر من تعليقات يوتيوب")
-st.markdown("اكتب موضوع ترند، اختر فيديو، وراح يتم تحليل مشاعر التعليقات بالعربي.")
-
-query = st.text_input("🎯 اكتب موضوع للبحث عن فيديوهات ترند:")
-
-if query:
-    videos = get_trending_videos(YOUTUBE_API_KEY, query)
-    if not videos:
-        st.warning("🚫 لا يوجد فيديوهات على هذا الموضوع")
-    else:
-        titles = [v[0] for v in videos]
-        selected = st.selectbox("🎬 اختر فيديو: ", titles)
-        video_id = dict(videos)[selected]
-
-        if st.button("🔍 تحليل التعليقات"):
-            with st.spinner("جاري تحليل التعليقات..."):
-                comments = get_arabic_comments(video_id, MAX_COMMENTS)
-                results = predict_sentiments(comments)
-                stats = summarize(results)
-
-                st.success("✅ تم التحليل")
-
-                for comment, label in results:
-                    st.markdown(f"**{label.upper()}** ➤ {comment}")
-
-                st.markdown("---")
-                st.subheader("📊 ملخص النتائج:")
-                for label in LABELS:
-                    st.write(f"{label}: {stats.get(label, '0 (0.0%)')}")
+if __name__ == '__main__':
+    app.run_server(debug=True)
