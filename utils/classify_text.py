@@ -3,7 +3,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-labels = ['neutral', 'negative', 'positive']
+labels = ['negative', 'neutral', 'positive']
 
 def classify_text(text, max_len=100):
     with open("models/tokenizer.pkl", "rb") as f:
