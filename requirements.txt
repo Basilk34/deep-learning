@@ -1,5 +1,0 @@
-streamlit
-tensorflow==2.13.0
-opencv-python-headless
-google-api-python-client
-youtube-comment-downloader
