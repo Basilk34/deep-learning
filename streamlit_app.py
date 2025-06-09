@@ -11,6 +11,9 @@ app = dash.Dash(__name__)
 server = app.server
 app.title = "تحليل مشاعر الصور والتعليقات"
 
+# ============== الحصول على مفتاح YouTube من المتغير البيئي ==============
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+
 # ============== تصميم الواجهة ==============
 app.layout = html.Div([
     html.H1("📊 مشروع تحليل المشاعر - هنودي تاج راسي 👑", style={'textAlign': 'center'}),
@@ -62,7 +65,7 @@ def process_image(content, filename):
 def fetch_videos(n, topic):
     if n == 0 or not topic:
         return []
-    results = get_trending_videos(api_key="AIzaSyANEG0NbdmV_veIiZHY9cyK-0du_cYmtRk", query=topic, region='SA')
+    results = get_trending_videos(api_key=YOUTUBE_API_KEY, query=topic, region='SA')
     return [{'label': title, 'value': vid} for vid, title in results]
 
 # ============== تصنيف التعليقات ==============
